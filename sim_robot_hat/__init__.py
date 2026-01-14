@@ -7,7 +7,10 @@ from .filedb import fileDB
 from .config import Config
 from .i2c import I2C
 from .modules import *
-from .music import Music
+try:
+    from .music import Music
+except ImportError:
+    Music = None
 from .motor import Motor, Motors
 from .pin import Pin
 from .pwm import PWM
@@ -17,7 +20,10 @@ from .robot import Robot
 from .version import __version__
 
 from .device import Devices
-__device__ = Devices()
+if os.path.exists("/proc/device-tree/"):
+    __device__ = Devices()
+else:
+    __device__ = None
 
 def __usage__():
     print('''

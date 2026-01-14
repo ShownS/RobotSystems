@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 from .basic import _Basic_class
 from .utils import run_command
-from smbus2 import SMBus
+try:
+    from smbus2 import SMBus
+except ImportError:
+    SMBus = None
 import multiprocessing
 
 
@@ -39,7 +42,11 @@ class I2C(_Basic_class):
         """
         super().__init__(*args, **kwargs)
         self._bus = bus
-        self._smbus = SMBus(self._bus)
+        if SMBus:
+            self._smbus = SMBus(self._bus)
+        else:
+            self._smbus = None
+
         if isinstance(address, list):
             connected_devices = self.scan()
             for _addr in address:
@@ -55,6 +62,8 @@ class I2C(_Basic_class):
 
     @_retry_wrapper
     def _write_byte(self, data):
+        if self._smbus is None:
+            return True
         # with I2C.i2c_lock.get_lock():
         self._debug(f"_write_byte: [0x{data:02X}]")
         result = self._smbus.write_byte(self.address, data)
@@ -62,18 +71,24 @@ class I2C(_Basic_class):
 
     @_retry_wrapper
     def _write_byte_data(self, reg, data):
+        if self._smbus is None:
+            return True
         # with I2C.i2c_lock.get_lock():
         self._debug(f"_write_byte_data: [0x{reg:02X}] [0x{data:02X}]")
         return self._smbus.write_byte_data(self.address, reg, data)
 
     @_retry_wrapper
     def _write_word_data(self, reg, data):
+        if self._smbus is None:
+            return True
         # with I2C.i2c_lock.get_lock():
         self._debug(f"_write_word_data: [0x{reg:02X}] [0x{data:04X}]")
         return self._smbus.write_word_data(self.address, reg, data)
 
     @_retry_wrapper
     def _write_i2c_block_data(self, reg, data):
+        if self._smbus is None:
+            return
         # with I2C.i2c_lock.get_lock():
         self._debug(
             f"_write_i2c_block_data: [0x{reg:02X}] {[f'0x{i:02X}' for i in data]}"
@@ -82,6 +97,8 @@ class I2C(_Basic_class):
 
     @_retry_wrapper
     def _read_byte(self):
+        if self._smbus is None:
+            return 0
         # with I2C.i2c_lock.get_lock():
         result = self._smbus.read_byte(self.address)
         self._debug(f"_read_byte: [0x{result:02X}]")
@@ -89,6 +106,8 @@ class I2C(_Basic_class):
 
     @_retry_wrapper
     def _read_byte_data(self, reg):
+        if self._smbus is None:
+            return 0
         # with I2C.i2c_lock.get_lock():
         result = self._smbus.read_byte_data(self.address, reg)
         self._debug(f"_read_byte_data: [0x{reg:02X}] [0x{result:02X}]")
@@ -96,6 +115,8 @@ class I2C(_Basic_class):
 
     @_retry_wrapper
     def _read_word_data(self, reg):
+        if self._smbus is None:
+            return 0
         # with I2C.i2c_lock.get_lock():
         result = self._smbus.read_word_data(self.address, reg)
         result_list = [result & 0xFF, (result >> 8) & 0xFF]
@@ -104,6 +125,8 @@ class I2C(_Basic_class):
 
     @_retry_wrapper
     def _read_i2c_block_data(self, reg, num):
+        if self._smbus is None:
+            return 0
         # with I2C.i2c_lock.get_lock():
         result = self._smbus.read_i2c_block_data(self.address, reg, num)
         self._debug(
@@ -118,6 +141,8 @@ class I2C(_Basic_class):
         :return: True if the I2C device is ready, False otherwise
         :rtype: bool
         """
+        if self._smbus is None:
+            return
         addresses = self.scan()
         if self.address in addresses:
             return True
@@ -130,6 +155,8 @@ class I2C(_Basic_class):
         :return: List of I2C addresses of devices found
         :rtype: list
         """
+        if self._smbus is None:
+            return []
         cmd = f"i2cdetect -y {self._bus}"
         # Run the i2cdetect command
         _, output = run_command(cmd)
@@ -258,6 +285,8 @@ class I2C(_Basic_class):
         return self.address in self.scan()
 
     def __del__(self):
+        if self._smbus is None:
+            return
         self._smbus.close()
         self._smbus = None
 

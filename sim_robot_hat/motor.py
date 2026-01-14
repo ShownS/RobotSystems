@@ -4,11 +4,16 @@ from .pwm import PWM
 from .pin import Pin
 from .filedb import fileDB
 
+# desktop/sim mode: no config ownership
+User = None
+UserHome = None
+config_file = None
+
 class Motor():
     """Motor"""
-    PERIOD = 4095
-    PRESCALER = 10
-    DEFAULT_FREQ = 100 # Hz
+    # PERIOD = 4095
+    # PRESCALER = 10
+    # DEFAULT_FREQ = 100 # Hz
 
     '''
     motor mode 1: (TC1508S)
@@ -25,7 +30,7 @@ class Motor():
     brake        1              1
     '''
 
-    def __init__(self, pwm, dir, is_reversed=False, mode=None, freq=DEFAULT_FREQ):
+    def __init__(self, pwm, dir, is_reversed=False, mode=None, freq=1):
         """
         Initialize a motor
 
