@@ -217,12 +217,12 @@ class Picarx(object):
             power_scale = self.ackermann(abs_current_angle)
 
             if (current_angle / abs_current_angle) > 0:
-                self.set_motor_speed(1, -1*speed)
+                self.set_motor_speed(1, -speed)
                 self.set_motor_speed(2, speed * power_scale)
 
             else:
-                self.set_motor_speed(1, -1*speed * power_scale)
-                self.set_motor_speed(2, speed )
+                self.set_motor_speed(1, -speed * power_scale)
+                self.set_motor_speed(2, speed)
         else:
             self.set_motor_speed(1, -1*speed)
             self.set_motor_speed(2, speed)  
@@ -251,12 +251,12 @@ class Picarx(object):
             power_scale = self.ackermann(abs_current_angle)
 
             if (current_angle / abs_current_angle) > 0:
-                self.set_motor_speed(1, 1*speed * power_scale)
-                self.set_motor_speed(2, -speed) 
+                self.set_motor_speed(1, speed)
+                self.set_motor_speed(2, -speed * power_scale)
 
             else:
-                self.set_motor_speed(1, speed)
-                self.set_motor_speed(2, -1*speed * power_scale)
+                self.set_motor_speed(1, speed * power_scale)
+                self.set_motor_speed(2, -speed)
         else:
             self.set_motor_speed(1, speed)
             self.set_motor_speed(2, -1*speed)                  
