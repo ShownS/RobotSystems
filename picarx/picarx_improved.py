@@ -2,6 +2,7 @@ import os
 import atexit
 import logging
 from logdecorator import log_on_start, log_on_end, log_on_error
+import math
 
 logging_format = "%(asctime)s: %(message)s"
 logging.basicConfig(format=logging_format, level=logging.INFO,datefmt="%H:%M:%S")
@@ -113,6 +114,10 @@ class Picarx(object):
 
         atexit.register(self.stop)
         
+
+    @log_on_start(logging.DEBUG, 'Attempting to set motor speed to {speed}')
+    @log_on_error(logging.DEBUG, 'Could not set motor speed')
+    @log_on_end(logging.DEBUG, 'Set motor speed to {speed}')
     def set_motor_speed(self, motor, speed):
         ''' set motor speed
         
@@ -129,8 +134,8 @@ class Picarx(object):
             direction = -1 * self.cali_dir_value[motor]
         speed = abs(speed)
         # print(f"direction: {direction}, speed: {speed}")
-        if speed != 0:
-            speed = int(speed /2 ) + 50
+        # if speed != 0:
+        #     speed = int(speed /2 ) + 50
         speed = speed - self.cali_speed_value[motor]
         if direction < 0:
             self.motor_direction_pins[motor].high()
@@ -168,6 +173,10 @@ class Picarx(object):
         self.config_file.set("picarx_dir_servo", "%s"%value)
         self.dir_servo_pin.angle(value)
 
+
+    @log_on_start(logging.DEBUG, 'Trying to set direction angle to {value}')
+    @log_on_error(logging.DEBUG, 'Failed to set direction angle')
+    @log_on_end(logging.DEBUG, 'Set servo direction angle')
     def set_dir_servo_angle(self, value):
         self.dir_current_angle = constrain(value, self.DIR_MIN, self.DIR_MAX)
         angle_value  = self.dir_current_angle + self.dir_cali_val
@@ -195,16 +204,22 @@ class Picarx(object):
         self.set_motor_speed(1, speed)
         self.set_motor_speed(2, speed)
 
+    @log_on_start(logging.DEBUG, 'Adjusting BACKWARD wheel speeds based on angle of {self.dir_current_angle}')
+    @log_on_error(logging.DEBUG, 'Failed to set wheel speeds')
+    @log_on_end(logging.DEBUG, 'Set speed to {speed}')
     def backward(self, speed):
         current_angle = self.dir_current_angle
         if current_angle != 0:
             abs_current_angle = abs(current_angle)
+
             if abs_current_angle > self.DIR_MAX:
                 abs_current_angle = self.DIR_MAX
-            power_scale = (100 - abs_current_angle) / 100.0 
+            power_scale = self.ackermann(abs_current_angle)
+
             if (current_angle / abs_current_angle) > 0:
                 self.set_motor_speed(1, -1*speed)
                 self.set_motor_speed(2, speed * power_scale)
+
             else:
                 self.set_motor_speed(1, -1*speed * power_scale)
                 self.set_motor_speed(2, speed )
@@ -212,16 +227,33 @@ class Picarx(object):
             self.set_motor_speed(1, -1*speed)
             self.set_motor_speed(2, speed)  
 
+    def ackermann(self, angle):
+        # Track width and wheel base, scaled to meters for use in equations
+        l = 94.25 / 1000.0
+        w = 117.1 / 1000.0
+
+        r_in = l / math.tan(math.radians(abs(angle))) - w / 2.0
+        r_out = l / math.tan(math.radians(abs(angle))) + w / 2.0
+        scale = r_in / r_out
+
+        return max(0.0, min(1.0, scale))
+
+    @log_on_start(logging.DEBUG, 'Adjusting FORWARD wheel speeds based on angle of {self.dir_current_angle}')
+    @log_on_error(logging.DEBUG, 'Failed to set wheel speeds')
+    @log_on_end(logging.DEBUG, 'Set speed to {speed}')
     def forward(self, speed):
         current_angle = self.dir_current_angle
         if current_angle != 0:
             abs_current_angle = abs(current_angle)
+
             if abs_current_angle > self.DIR_MAX:
                 abs_current_angle = self.DIR_MAX
-            power_scale = (100 - abs_current_angle) / 100.0
+            power_scale = self.ackermann(abs_current_angle)
+
             if (current_angle / abs_current_angle) > 0:
                 self.set_motor_speed(1, 1*speed * power_scale)
                 self.set_motor_speed(2, -speed) 
+
             else:
                 self.set_motor_speed(1, speed)
                 self.set_motor_speed(2, -1*speed * power_scale)
@@ -310,6 +342,9 @@ class Picarx(object):
 
 if __name__ == "__main__":
     px = Picarx()
+    for angle in range(0, 35):
+            px.set_dir_servo_angle(angle)
+            time.sleep(0.01)
     px.forward(50)
     time.sleep(1)
     px.stop()
