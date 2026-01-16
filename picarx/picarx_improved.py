@@ -342,7 +342,7 @@ class Picarx(object):
 
 if __name__ == "__main__":
     px = Picarx()
-    for angle in range(0, 35):
+    for angle in range(0, 20):
             px.set_dir_servo_angle(angle)
             time.sleep(0.01)
     px.forward(75)
