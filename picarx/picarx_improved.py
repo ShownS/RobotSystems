@@ -247,7 +247,8 @@ class Picarx(object):
         # Track width and wheel base, scaled to meters for use in equations
         l = 94.3 / 1000.0
         w = 113.5 / 1000.0
-
+        if math.tan(math.radians(angle)) == 0:
+            return 1.0
         r_in = l / math.tan(math.radians(angle)) - w / 2.0
         r_out = l / math.tan(math.radians(angle)) + w / 2.0
         scale = r_in / r_out
