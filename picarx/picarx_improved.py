@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import os
 import atexit
 import logging
