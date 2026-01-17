@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import os
 import atexit
 import logging
@@ -357,3 +358,5 @@ if __name__ == "__main__":
     #         px.set_dir_servo_angle(angle)
     #         time.sleep(0.01)
     px.stop()
+=======
+>>>>>>> dd175c928f0174318cedfee0d5f2912e2aa863f8
