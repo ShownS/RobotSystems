@@ -176,7 +176,6 @@ class Picarx(object):
 
     @log_on_start(logging.DEBUG, 'Trying to set direction angle to {value}')
     @log_on_error(logging.DEBUG, 'Failed to set direction angle')
-    @log_on_end(logging.DEBUG, 'Set servo direction angle')
     def set_dir_servo_angle(self, value):
         self.dir_current_angle = constrain(value, self.DIR_MIN, self.DIR_MAX)
         angle_value  = self.dir_current_angle + self.dir_cali_val
@@ -217,11 +216,11 @@ class Picarx(object):
 
             if (current_angle / abs_current_angle) > 0:
                 self.set_motor_speed(1, -speed)
-                self.set_motor_speed(2, scaled)
+                self.set_motor_speed(2, -scaled)
 
             else:
                 self.set_motor_speed(1, -scaled)
-                self.set_motor_speed(2, speed)
+                self.set_motor_speed(2, -speed)
         else:
             self.set_motor_speed(1, -1*speed)
             self.set_motor_speed(2, speed)  
@@ -252,11 +251,11 @@ class Picarx(object):
 
             if (current_angle / abs_current_angle) > 0:
                 self.set_motor_speed(1, speed)
-                self.set_motor_speed(2, -scaled)
+                self.set_motor_speed(2, scaled)
 
             else:
                 self.set_motor_speed(1, scaled)
-                self.set_motor_speed(2, -speed)
+                self.set_motor_speed(2, speed)
         else:
             self.set_motor_speed(1, speed)
             self.set_motor_speed(2, -1*speed)    
