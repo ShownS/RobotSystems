@@ -216,11 +216,11 @@ class Picarx(object):
 
             if (current_angle / abs_current_angle) > 0:
                 self.set_motor_speed(1, -speed)
-                self.set_motor_speed(2, -scaled)
+                self.set_motor_speed(2, scaled)
 
             else:
                 self.set_motor_speed(1, -scaled)
-                self.set_motor_speed(2, -speed)
+                self.set_motor_speed(2, speed)
         else:
             self.set_motor_speed(1, -1*speed)
             self.set_motor_speed(2, speed)  
@@ -229,8 +229,8 @@ class Picarx(object):
 
     def ackermann(self, angle):
         # Track width and wheel base, scaled to meters for use in equations
-        l = 94.25 / 1000.0
-        w = 117.1 / 1000.0
+        l = 94.3 / 1000.0
+        w = 113.5 / 1000.0
 
         r_in = l / math.tan(math.radians(angle)) - w / 2.0
         r_out = l / math.tan(math.radians(angle)) + w / 2.0
@@ -251,11 +251,11 @@ class Picarx(object):
 
             if (current_angle / abs_current_angle) > 0:
                 self.set_motor_speed(1, speed)
-                self.set_motor_speed(2, scaled)
+                self.set_motor_speed(2, -scaled)
 
             else:
                 self.set_motor_speed(1, scaled)
-                self.set_motor_speed(2, speed)
+                self.set_motor_speed(2, -speed)
         else:
             self.set_motor_speed(1, speed)
             self.set_motor_speed(2, -1*speed)    
