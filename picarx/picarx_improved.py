@@ -218,12 +218,14 @@ class Picarx(object):
     @log_on_error(logging.DEBUG, 'Failed to set wheel speeds')
     def backward(self, speed):
         current_angle = self.dir_current_angle
+        scaled = self.ackermann(abs_current_angle) * speed
+
         if current_angle != 0:
             abs_current_angle = abs(current_angle)
 
             if abs_current_angle > self.DIR_MAX:
                 abs_current_angle = self.DIR_MAX
-            scaled = self.ackermann(abs_current_angle) * speed
+            # scaled = self.ackermann(abs_current_angle) * speed
 
             if (current_angle / abs_current_angle) > 0:
                 self.set_motor_speed(1, -speed)
@@ -253,12 +255,14 @@ class Picarx(object):
     @log_on_error(logging.DEBUG, 'Failed to set wheel speeds')
     def forward(self, speed):
         current_angle = self.dir_current_angle
+        scaled = self.ackermann(abs_current_angle) * speed
+
         if current_angle != 0:
             abs_current_angle = abs(current_angle)
 
             if abs_current_angle > self.DIR_MAX:
                 abs_current_angle = self.DIR_MAX
-            scaled = self.ackermann(abs_current_angle) * speed
+            # scaled = self.ackermann(abs_current_angle) * speed
 
             if (current_angle / abs_current_angle) > 0:
                 self.set_motor_speed(1, speed)
