@@ -304,29 +304,29 @@ class Picarx(object):
         else:
             raise ValueError("grayscale reference must be a 1*3 list")
         
-    def park(self):
+    def park(self,speed):
         for angle in range(0,35):
             px.set_dir_servo_angle(angle)
             time.sleep(0.01)
-        px.backward(15)
-        time.sleep(0.1)
+        px.backward(speed)
+        time.sleep(0.5)
         px.set_dir_servo_angle(0)
         for angle in range(0,-35,-1):
             px.set_dir_servo_angle(angle)
             time.sleep(0.01)
-        px.backward(15)
-        time.sleep(0.1)
+        px.backward(speed)
+        time.sleep(0.5)
 
-    def kturn(self):
+    def kturn(self,speed):
         for angle in range(0,-35,-1):
             px.set_dir_servo_angle(angle)
             time.sleep(0.01)
-        px.forward(15)
+        px.forward(speed)
         time.sleep(0.1)
         for angle in range(-35,35):
             px.set_dir_servo_angle(angle)
             time.sleep(0.01)
-        px.backward(15)
+        px.backward(speed)
         time.sleep(0.1)
         
 
@@ -343,12 +343,12 @@ class Picarx(object):
 
 if __name__ == "__main__":
     px = Picarx()
-    for angle in range(0, 30):
-            px.set_dir_servo_angle(angle)
-            time.sleep(0.01)
-    px.forward(90)
+    # for angle in range(0, 30):
+    #         px.set_dir_servo_angle(angle)
+    #         time.sleep(0.01)
+    px.park(90)
     time.sleep(1)
-    for angle in range(30, 0, -1):
-            px.set_dir_servo_angle(angle)
-            time.sleep(0.01)
+    # for angle in range(30, 0, -1):
+    #         px.set_dir_servo_angle(angle)
+    #         time.sleep(0.01)
     px.stop()
