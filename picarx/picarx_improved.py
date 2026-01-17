@@ -353,7 +353,7 @@ class Picarx(object):
             self.set_dir_servo_angle(angle)
             time.sleep(0.01)
         self.backward(speed)
-        time.sleep(0.75)
+        time.sleep(0.5)
         for angle in range(0,-30,-1):
             self.set_dir_servo_angle(angle)
             time.sleep(0.01)
@@ -375,7 +375,7 @@ class Picarx(object):
             self.set_dir_servo_angle(angle)
             time.sleep(0.01)
         self.backward(speed)
-        time.sleep(1)
+        time.sleep(1.2)
         #self.stop()
         for angle in range(30,0,-1):
             self.set_dir_servo_angle(angle)
