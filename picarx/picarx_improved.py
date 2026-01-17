@@ -92,6 +92,7 @@ class Picarx(object):
         self.cali_dir_value = [int(i.strip()) for i in self.cali_dir_value.strip().strip("[]").split(",")]
         self.cali_speed_value = [0, 0]
         self.dir_current_angle = 0
+        self.dir_wanted_angle = 0
         # init pwm
         for pin in self.motor_speed_pins:
             pin.period(self.PERIOD)
@@ -203,6 +204,16 @@ class Picarx(object):
         self.set_motor_speed(1, speed)
         self.set_motor_speed(2, speed)
 
+    def recenter_steering(self):
+        current = self.dir_current_angle
+        if current == 0:
+            return
+        direction = -1 if current > 0 else 1
+        for a in range(current, 0, direction):
+            self.set_dir_servo_angle(a)
+            time.sleep(0.01)
+        self.set_dir_servo_angle(0)
+
     @log_on_start(logging.DEBUG, 'Adjusting BACKWARD wheel speeds based on speed of {speed}')
     @log_on_error(logging.DEBUG, 'Failed to set wheel speeds')
     def backward(self, speed):
@@ -225,7 +236,7 @@ class Picarx(object):
             self.set_motor_speed(1, -1*speed)
             self.set_motor_speed(2, speed)  
         
-        logging.debug('Inner wheel speed: {scaled}, outer wheel speed: {speed}')  
+        logging.debug(f'Inner wheel speed: {scaled}, outer wheel speed: {speed}')  
 
     def ackermann(self, angle):
         # Track width and wheel base, scaled to meters for use in equations
@@ -260,7 +271,23 @@ class Picarx(object):
             self.set_motor_speed(1, speed)
             self.set_motor_speed(2, -1*speed)    
 
-        logging.debug(f'Inner wheel speed: {scaled}, outer wheel speed: {speed}')              
+        logging.debug(f'Inner wheel speed: {scaled}, outer wheel speed: {speed}')  
+
+    def steer_left(self, step = 5):
+        new_angle = self.dir_current_angle - step
+        new_angle = max(-self.DIR_MAX, min(self.DIR_MAX, new_angle))
+        for angle in range(self.dir_current_angle, new_angle, -1):
+            self.set_dir_servo_angle(angle)
+            time.sleep(0.01)
+        self.set_dir_servo_angle(new_angle)
+
+    def steer_right(self, step = 5):
+        new_angle = self.dir_current_angle + step
+        new_angle = min(self.DIR_MAX, max(-self.DIR_MAX, new_angle))
+        for angle in range(self.dir_current_angle, new_angle, 1):
+            self.set_dir_servo_angle(angle)
+            time.sleep(0.01)
+        self.set_dir_servo_angle(new_angle)
 
     def stop(self):
         '''
@@ -305,33 +332,42 @@ class Picarx(object):
             raise ValueError("grayscale reference must be a 1*3 list")
         
     def park(self,speed):
-        for angle in range(0,35):
-            px.set_dir_servo_angle(angle)
+        self.recenter_steering()
+        for angle in range(0,30):
+            self.set_dir_servo_angle(angle)
             time.sleep(0.01)
-        px.backward(speed)
-        #time.sleep(0.75)
-        px.set_dir_servo_angle(0)
-        for angle in range(0,-35,-1):
-            px.set_dir_servo_angle(angle)
-            time.sleep(0.01)
-        px.backward(speed)
+        self.backward(speed)
         time.sleep(0.5)
+        for angle in range(30,0,-1):
+            self.set_dir_servo_angle(angle)
+            time.sleep(0.01)
+        self.backward(speed)
+        time.sleep(0.75)
+        for angle in range(0,-30,-1):
+            self.set_dir_servo_angle(angle)
+            time.sleep(0.01)
+        self.backward(speed)
+        time.sleep(0.5)
+        for angle in range(-30,0):
+            self.set_dir_servo_angle(angle)
+            time.sleep(0.01)
 
     def kturn(self,speed):
-        for angle in range(0,-35,-1):
-            px.set_dir_servo_angle(angle)
+        self.recenter_steering()
+        for angle in range(0,-30,-1):
+            self.set_dir_servo_angle(angle)
             time.sleep(0.01)
-        px.forward(speed)
+        self.forward(speed)
         time.sleep(1)
         #self.stop()
-        for angle in range(-35,35):
-            px.set_dir_servo_angle(angle)
+        for angle in range(-30,30):
+            self.set_dir_servo_angle(angle)
             time.sleep(0.01)
-        px.backward(speed)
+        self.backward(speed)
         time.sleep(1)
         #self.stop()
-        for angle in range(35,0,-1):
-            px.set_dir_servo_angle(angle)
+        for angle in range(30,0,-1):
+            self.set_dir_servo_angle(angle)
             time.sleep(0.01)
         
 
@@ -348,12 +384,37 @@ class Picarx(object):
 
 if __name__ == "__main__":
     px = Picarx()
+    e = 0
+    while e < 1:
+        command = input('Directions?')
+        if command == 'w':
+            px.forward(75)
+            time.sleep(0.25)
+        elif command == 's':
+            px.backward(75)
+            time.sleep(0.25)
+        elif command == 'a':
+            px.steer_left()
+        elif command == 'd':
+            px.steer_right()
+        elif command == 'k':
+            px.kturn(90)
+        elif command == 'p':
+            px.park(90)
+        elif command == 'q':
+            px.stop()
+            print("Quitting")
+            e += 1
+        else:
+            print("Please enter a valid command: w, a, s, d, p, k, q")
+        px.stop()
+            
     # for angle in range(0, 30):
     #         px.set_dir_servo_angle(angle)
     #         time.sleep(0.01)
-    px.kturn(90)
-    time.sleep(1)
+    # px.kturn(90)
+    # time.sleep(1)
     # for angle in range(30, 0, -1):
     #         px.set_dir_servo_angle(angle)
     #         time.sleep(0.01)
-    px.stop()
+    # px.stop()
