@@ -261,7 +261,7 @@ class Picarx(object):
             self.set_motor_speed(1, speed)
             self.set_motor_speed(2, -1*speed)    
 
-        logging.debug('Inner wheel speed: {scaled}, outer wheel speed: {speed}')              
+        logging.debug(f'Inner wheel speed: {scaled}, outer wheel speed: {speed}')              
 
     def stop(self):
         '''
@@ -344,9 +344,12 @@ class Picarx(object):
 
 if __name__ == "__main__":
     px = Picarx()
-    for angle in range(0, 20):
+    for angle in range(0, 30):
             px.set_dir_servo_angle(angle)
             time.sleep(0.01)
-    px.forward(75)
+    px.forward(90)
     time.sleep(1)
+    for angle in range(30, 0, -1):
+            px.set_dir_servo_angle(angle)
+            time.sleep(0.01)
     px.stop()
