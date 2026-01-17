@@ -322,12 +322,12 @@ class Picarx(object):
             px.set_dir_servo_angle(angle)
             time.sleep(0.01)
         px.forward(speed)
-        time.sleep(0.1)
+        time.sleep(0.75)
         for angle in range(-35,35):
             px.set_dir_servo_angle(angle)
             time.sleep(0.01)
         px.backward(speed)
-        time.sleep(0.1)
+        time.sleep(0.75)
         
 
 
@@ -346,7 +346,7 @@ if __name__ == "__main__":
     # for angle in range(0, 30):
     #         px.set_dir_servo_angle(angle)
     #         time.sleep(0.01)
-    px.park(90)
+    px.kturn(90)
     time.sleep(1)
     # for angle in range(30, 0, -1):
     #         px.set_dir_servo_angle(angle)
