@@ -27,6 +27,9 @@ def constrain(x, min_val, max_val):
     '''
     return max(min_val, min(max_val, x))
 
+# class Sensor(object):
+
+
 class Picarx(object):
     CONFIG = '/opt/picar-x/picar-x.conf'
 
@@ -224,11 +227,6 @@ class Picarx(object):
         scaled = self.ackermann(abs_current_angle) * speed
 
         if current_angle != 0:
-            # abs_current_angle = abs(current_angle)
-
-            # if abs_current_angle > self.DIR_MAX:
-            #     abs_current_angle = self.DIR_MAX
-            # scaled = self.ackermann(abs_current_angle) * speed
 
             if (current_angle / abs_current_angle) > 0:
                 self.set_motor_speed(1, -speed)
@@ -265,11 +263,6 @@ class Picarx(object):
         scaled = self.ackermann(abs_current_angle) * speed
 
         if current_angle != 0:
-            # abs_current_angle = abs(current_angle)
-
-            # if abs_current_angle > self.DIR_MAX:
-            #     abs_current_angle = self.DIR_MAX
-            # scaled = self.ackermann(abs_current_angle) * speed
 
             if (current_angle / abs_current_angle) > 0:
                 self.set_motor_speed(1, speed)
@@ -381,8 +374,10 @@ class Picarx(object):
             self.set_dir_servo_angle(angle)
             time.sleep(0.01)
         self.forward(speed)
-        time.sleep(0.5)
-        
+        time.sleep(0.75)
+        for angle in range(-30,0):
+            self.set_dir_servo_angle(angle)
+            time.sleep(0.01)
 
 
     def reset(self):
@@ -420,14 +415,4 @@ if __name__ == "__main__":
             e += 1
         else:
             print("Please enter a valid command: w, a, s, d, p, k, q")
-        px.stop()
-            
-    # for angle in range(0, 30):
-    #         px.set_dir_servo_angle(angle)
-    #         time.sleep(0.01)
-    # px.kturn(90)
-    # time.sleep(1)
-    # for angle in range(30, 0, -1):
-    #         px.set_dir_servo_angle(angle)
-    #         time.sleep(0.01)
-    # px.stop()
+        px.stop()          
