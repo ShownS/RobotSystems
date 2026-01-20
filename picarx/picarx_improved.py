@@ -369,17 +369,19 @@ class Picarx(object):
             self.set_dir_servo_angle(angle)
             time.sleep(0.01)
         self.forward(speed)
-        time.sleep(1.25)
+        time.sleep(1)
         #self.stop()
         for angle in range(-30,30):
             self.set_dir_servo_angle(angle)
             time.sleep(0.01)
         self.backward(speed)
-        time.sleep(1.25)
+        time.sleep(1)
         #self.stop()
-        for angle in range(30,0,-1):
+        for angle in range(30,-30,-1):
             self.set_dir_servo_angle(angle)
             time.sleep(0.01)
+        self.forward(speed)
+        time.sleep(0.5)
         
 
 
@@ -411,7 +413,7 @@ if __name__ == "__main__":
         elif command == 'k':
             px.kturn(90)
         elif command == 'p':
-            px.park(90)
+            px.park(75)
         elif command == 'q':
             px.stop()
             print("Quitting")
