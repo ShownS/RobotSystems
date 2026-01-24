@@ -542,11 +542,11 @@ if __name__ == "__main__":
             px.forward(40)
 
             if interp.line_seen:
-                time = 0.0
+                t_time = 0.0
             else:
-                time += dt
+                t_time += dt
 
-                if time >= 1.0:
+                if t_time >= 1.0:
                     px.stop()
                     px.set_dir_servo_angle(0)
                     print("Line lost")
