@@ -111,8 +111,8 @@ class Controller:
 class Picarx(object):
     CONFIG = '/opt/picar-x/picar-x.conf'
 
-    DEFAULT_LINE_REF = [1000, 1000, 1000]
-    DEFAULT_CLIFF_REF = [500, 500, 500]
+    DEFAULT_LINE_REF = [600, 600, 600]
+    DEFAULT_CLIFF_REF = [200, 200, 200]
 
     DIR_MIN = -30
     DIR_MAX = 30
