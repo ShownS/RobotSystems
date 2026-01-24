@@ -27,7 +27,73 @@ def constrain(x, min_val, max_val):
     '''
     return max(min_val, min(max_val, x))
 
-# class Sensor(object):
+class Sensor:
+
+    def __init__(self, adc_pins=("A0", "A1", "A2")):
+        # ADC structures stored as attributes using self.  :contentReference[oaicite:3]{index=3}
+        self.adc_l = ADC(adc_pins[0])
+        self.adc_m = ADC(adc_pins[1])
+        self.adc_r = ADC(adc_pins[2])
+
+    def read(self):
+        l_val = self.adc_l.read()
+        m_val = self.adc_m.read()
+        r_val = self.adc_r.read()
+        return [l_val, m_val, r_val]
+    
+class Interpreter:
+    """
+    Manual 3.2 Interpreter (kept as simple as the provided line tracking example).
+
+    Uses the existing method:
+        px.get_line_status(val_list)
+    which returns [0/1, 0/1, 0/1] style line/background classification. :contentReference[oaicite:2]{index=2}
+
+    output() returns position in [-1, 1], positive means line is to the LEFT of robot. :contentReference[oaicite:3]{index=3}
+    """
+
+    def __init__(self, px, sensitivity=0.35, polarity="dark"):
+        self.px = px
+        self.sensitivity = float(sensitivity)
+        if polarity not in ("dark","light"):
+            raise ValueError("Polarity needs to be 'dark' or 'light'")
+        self.polarity = polarity
+        self._pos = 0.0
+        self._last_nonzero = 0.0
+
+    def process(self, val_list):
+        states = self.px.get_line_status(val_list) 
+        if self.polarity == "light":
+            bits = [1 - bit for bit in bits]
+
+        if states == [0, 0, 0]:
+            # stop / ambiguous: keep last seen direction but saturate
+            self._pos = self._last_nonzero if self._last_nonzero != 0.0 else 0.0
+
+        elif states[0] == 1:
+            self._pos = -0.5
+
+        elif states[1] == 1:
+            self._pos = 0.0
+
+        elif states[2] == 1:
+            self._pos = +0.5
+
+        else:
+            self._pos = 0.0
+
+        if self._pos != 0.0:
+            self._last_nonzero = self._pos
+
+        if self._pos > 1.0:
+            self._pos = 1.0
+        if self._pos < -1.0:
+            self._pos = -1.0
+
+        return self._pos
+
+    # def output(self):
+    #     return self._pos
 
 
 class Picarx(object):
