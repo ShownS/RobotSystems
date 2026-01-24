@@ -527,7 +527,7 @@ if __name__ == "__main__":
     sensor = Sensor(("A0", "A1", "A2"))
     px.calibrate_line(sensor, 30)
 
-    interp = Interpreter(px, polarity="light")
+    interp = Interpreter(px, polarity="dark")
     ctrl = Controller(px, scale=30.0)
 
     dt = 0.05
