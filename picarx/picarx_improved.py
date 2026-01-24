@@ -64,7 +64,7 @@ class Interpreter:
     def process(self, val_list):
         states = self.px.get_line_status(val_list) 
         if self.polarity == "light":
-            bits = [1 - bit for bit in bits]
+            states = [1 - bit for bit in states]
 
         if states == [0, 0, 0]:
             # stop / ambiguous: keep last seen direction but saturate
@@ -497,15 +497,15 @@ if __name__ == "__main__":
     px = Picarx()
 
     sensor = Sensor(("A0", "A1", "A2"))
-    interp = Interpreter(px, polarity="dark")   # or "light"
+    interp = Interpreter(px, polarity="dark")
     ctrl = Controller(px, scale=30.0)
 
     try:
         while True:
-            vals = sensor.read()          # 3.1
-            interp.process(vals)          # 3.2
-            offset = interp.output()      # [-1, 1]
-            angle = ctrl.control(offset)  # 3.3
+            vals = sensor.read()
+            interp.process(vals)
+            offset = interp.output()
+            angle = ctrl.control(offset)
 
             print(f"vals={vals} offset={offset:+.2f} angle={angle:+.1f}")
             time.sleep(0.05)
