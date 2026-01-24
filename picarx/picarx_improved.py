@@ -524,6 +524,11 @@ if __name__ == "__main__":
     #     px.stop()         
     px = Picarx()
 
+    px.set_cam_tilt_angle(-30)   # flip to +30 if it moves the wrong way
+    time.sleep(0.4)
+
+    input("Press Enter to begin")
+
     sensor = Sensor(("A0", "A1", "A2"))
     px.calibrate_line(sensor, 30)
 
