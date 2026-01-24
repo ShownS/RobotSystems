@@ -60,14 +60,16 @@ class Interpreter:
         self.polarity = polarity
         self._pos = 0.0
         self._last_nonzero = 0.0
+        self.line_seen = False
 
     def process(self, val_list):
         states = self.px.get_line_status(val_list) 
         if self.polarity == "light":
             states = [1 - bit for bit in states]
 
+        self.line_seen = (states != [0,0,0])
+
         if states == [0, 0, 0]:
-            # stop / ambiguous: keep last seen direction but saturate
             self._pos = self._last_nonzero if self._last_nonzero != 0.0 else 0.0
 
         elif states[0] == 1:
@@ -528,14 +530,30 @@ if __name__ == "__main__":
     interp = Interpreter(px, polarity="dark")
     ctrl = Controller(px, scale=30.0)
 
+    dt = 0.05
+    time = 0.0
+
     try:
         while True:
             vals = sensor.read()
             interp.process(vals)
             offset = interp.output()
             angle = ctrl.control(offset)
+            px.forward(40)
+
+            if interp.line_seen:
+                time = 0.0
+            else:
+                time += dt
+
+                if time >= 1.0:
+                    px.stop()
+                    px.set_dir_servo_angle(0)
+                    print("Line lost")
+                    break
 
             print(f"vals={vals} offset={offset:+.2f} angle={angle:+.1f}")
-            time.sleep(0.05)
+            time.sleep(dt)
     finally:
-        px.stop() 
+        px.stop()
+        px.set_dir_servo_angle(0) 
