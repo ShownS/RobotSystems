@@ -273,6 +273,32 @@ class Picarx(object):
         self.config_file.set("picarx_cam_tilt_servo", "%s"%value)
         self.cam_tilt.angle(value)
 
+    def calibrate_line(px, sensor, samples=30):
+        def avg_reading(area):
+            input(area)
+            total = [0.0, 0.0, 0.0]
+            for _ in range(samples):
+                v = sensor.read()
+                for i in range(3):
+                    total[i] += v[i]
+                time.sleep(0.01)
+            return [t / samples for t in total]
+
+        bg = avg_reading("Background measurement:")
+        print(f"background avg: {[round(x,1) for x in bg]}")
+
+        ln = avg_reading("Line measurement")
+        print(f"line avg: {[round(x,1) for x in ln]}")
+
+        ref = [(bg[i] + ln[i]) / 2.0 for i in range(3)]
+        ref_int = [int(r) for r in ref]
+
+        px.set_line_reference(ref_int)
+        print(f"Set line_reference to: {ref_int}")
+
+        return ref_int
+
+
     def set_cam_pan_angle(self, value):
         value = constrain(value, self.CAM_PAN_MIN, self.CAM_PAN_MAX)
         self.cam_pan.angle(-1*(value + -1*self.cam_pan_cali_val))
@@ -497,6 +523,8 @@ if __name__ == "__main__":
     px = Picarx()
 
     sensor = Sensor(("A0", "A1", "A2"))
+    px.calibrate_line(px, sensor, 30)
+
     interp = Interpreter(px, polarity="dark")
     ctrl = Controller(px, scale=30.0)
 
