@@ -525,7 +525,7 @@ if __name__ == "__main__":
     px = Picarx()
 
     sensor = Sensor(("A0", "A1", "A2"))
-    px.calibrate_line(px, sensor, 30)
+    px.calibrate_line(px, sensor, samples=30)
 
     interp = Interpreter(px, polarity="dark")
     ctrl = Controller(px, scale=30.0)
