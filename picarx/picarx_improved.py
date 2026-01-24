@@ -92,8 +92,20 @@ class Interpreter:
 
         return self._pos
 
-    # def output(self):
-    #     return self._pos
+    def output(self):
+        return self._pos
+    
+class Controller:
+    def __init__(self, px, scale=30.0):
+        self.px = px
+        self.scale = float(scale)
+
+    def control(self, offset):
+        angle = self.scale * float(offset)
+
+        self.px.set_dir_servo_angle(angle)
+
+        return angle
 
 
 class Picarx(object):
@@ -457,28 +469,45 @@ class Picarx(object):
         self.ultrasonic.close()
 
 if __name__ == "__main__":
+    # px = Picarx()
+    # e = 0
+    # while e < 1:
+    #     command = input('Directions?')
+    #     if command == 'w':
+    #         px.forward(75)
+    #         time.sleep(0.25)
+    #     elif command == 's':
+    #         px.backward(75)
+    #         time.sleep(0.25)
+    #     elif command == 'a':
+    #         px.steer_left()
+    #     elif command == 'd':
+    #         px.steer_right()
+    #     elif command == 'k':
+    #         px.kturn(90)
+    #     elif command == 'p':
+    #         px.park(75)
+    #     elif command == 'q':
+    #         px.stop()
+    #         print("Quitting")
+    #         e += 1
+    #     else:
+    #         print("Please enter a valid command: w, a, s, d, p, k, q")
+    #     px.stop()         
     px = Picarx()
-    e = 0
-    while e < 1:
-        command = input('Directions?')
-        if command == 'w':
-            px.forward(75)
-            time.sleep(0.25)
-        elif command == 's':
-            px.backward(75)
-            time.sleep(0.25)
-        elif command == 'a':
-            px.steer_left()
-        elif command == 'd':
-            px.steer_right()
-        elif command == 'k':
-            px.kturn(90)
-        elif command == 'p':
-            px.park(75)
-        elif command == 'q':
-            px.stop()
-            print("Quitting")
-            e += 1
-        else:
-            print("Please enter a valid command: w, a, s, d, p, k, q")
-        px.stop()          
+
+    sensor = Sensor(("A0", "A1", "A2"))
+    interp = Interpreter(px, polarity="dark")   # or "light"
+    ctrl = Controller(px, scale=30.0)
+
+    try:
+        while True:
+            vals = sensor.read()          # 3.1
+            interp.process(vals)          # 3.2
+            offset = interp.output()      # [-1, 1]
+            angle = ctrl.control(offset)  # 3.3
+
+            print(f"vals={vals} offset={offset:+.2f} angle={angle:+.1f}")
+            time.sleep(0.05)
+    finally:
+        px.stop() 
