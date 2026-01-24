@@ -553,7 +553,7 @@ if __name__ == "__main__":
                     break
 
             print(f"vals={vals} offset={offset:+.2f} angle={angle:+.1f}")
-            time.sleep(dt)
+            time.sleep(0.05)
     finally:
         px.stop()
         px.set_dir_servo_angle(0) 
