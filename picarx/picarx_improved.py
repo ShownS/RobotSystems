@@ -531,7 +531,7 @@ if __name__ == "__main__":
     ctrl = Controller(px, scale=30.0)
 
     dt = 0.05
-    time = 0.0
+    t_time = 0.0
 
     try:
         while True:
