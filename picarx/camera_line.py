@@ -123,7 +123,7 @@ def main():
     scale = 25.0           # steering strength
     dt = 0.05
 
-    lost_timeout = 1.2
+    lost_timeout = 5.0
     lost_t = 0.0
 
     try:
