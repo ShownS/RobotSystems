@@ -76,7 +76,7 @@ def interpreter(frame, polarity="dark", roi_frac=0.35, min_area=200):
 # -------------------------
 # 3) CONTROLLER: (offset, seen) -> action
 # -------------------------
-def controller(px, offset, seen, speed=12, scale=25.0):
+def controller(px, offset, seen, speed=35, scale=25.0):
     """
     scale converts offset [-1,1] -> steering angle degrees.
     returns commanded angle.
@@ -130,7 +130,7 @@ def main():
     time.sleep(0.2)
 
     polarity = "dark"   # set "light" if you have white tape on dark floor
-    speed = 12          # slow
+    speed = 30          # slow
     scale = 25.0        # steering strength (deg at offset=1)
     dt = 0.05
 
