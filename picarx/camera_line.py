@@ -1,14 +1,24 @@
 import time
 import cv2
 import numpy as np
+from picamera2 import Picamera2
+
 from picarx_improved import Picarx
 
+
 # -------------------------
-# 1) SENSOR: get a frame
+# 1) SENSOR: get a frame (BGR)
 # -------------------------
-def sensor(cap):
-    ok, frame = cap.read()
-    return frame if ok else None
+def sensor(picam2):
+    """
+    Returns a BGR frame (numpy array) or None if capture fails.
+    Picamera2 returns RGB by default; OpenCV expects BGR. :contentReference[oaicite:2]{index=2}
+    """
+    frame_rgb = picam2.capture_array()
+    if frame_rgb is None:
+        return None
+    frame_bgr = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2BGR)
+    return frame_bgr
 
 
 # -------------------------
@@ -16,17 +26,16 @@ def sensor(cap):
 # -------------------------
 def interpreter(frame, polarity="dark", roi_frac=0.35, min_area=200):
     """
-    Returns:
-      offset in [-1,1] (positive means line is LEFT of robot),
-      seen (bool),
-      debug dict for drawing.
+    offset in [-1,1], positive means line is LEFT of robot.
+    seen True if line detected.
+    debug dict includes ROI top (y0) and centroid x for drawing.
     """
     if frame is None:
         return 0.0, False, {}
 
     h, w = frame.shape[:2]
 
-    # bottom ROI
+    # Bottom-of-image ROI
     y0 = int(h * (1.0 - roi_frac))
     roi = frame[y0:h, :]
 
@@ -53,10 +62,10 @@ def interpreter(frame, polarity="dark", roi_frac=0.35, min_area=200):
     if M["m00"] == 0:
         return 0.0, False, {"y0": y0, "w": w, "h": h, "area": area}
 
-    cx = float(M["m10"] / M["m00"])  # 0..w in ROI coordinates (same width as frame)
+    cx = float(M["m10"] / M["m00"])  # centroid in ROI coords (same width)
     center = w / 2.0
 
-    # Map x to [-1,1], positive = line left
+    # Map x to [-1, 1], positive = line is left => (center - cx)/center
     offset = (center - cx) / center
     offset = max(-1.0, min(1.0, offset))
 
@@ -70,7 +79,7 @@ def interpreter(frame, polarity="dark", roi_frac=0.35, min_area=200):
 def controller(px, offset, seen, speed=12, scale=25.0):
     """
     scale converts offset [-1,1] -> steering angle degrees.
-    returns commanded angle (float).
+    returns commanded angle.
     """
     if not seen:
         px.stop()
@@ -83,23 +92,22 @@ def controller(px, offset, seen, speed=12, scale=25.0):
 
 
 def draw_debug(frame, dbg, offset, seen, angle):
-    """Optional: draw ROI, centroid, and text."""
     if frame is None:
         return frame
 
     h, w = frame.shape[:2]
     y0 = dbg.get("y0", int(h * 0.65))
 
-    # ROI rectangle
+    # ROI box
     cv2.rectangle(frame, (0, y0), (w - 1, h - 1), (0, 255, 0), 2)
-
-    # center line
+    # Center line
     cv2.line(frame, (w // 2, y0), (w // 2, h - 1), (255, 255, 0), 2)
 
-    # centroid marker
-    if "cx" in dbg and seen:
+    # Centroid marker (draw in the ROI mid-height for visibility)
+    if seen and "cx" in dbg:
         cx = dbg["cx"]
-        cv2.circle(frame, (cx, y0 + (h - y0) // 2), 6, (0, 0, 255), -1)
+        cy = y0 + (h - y0) // 2
+        cv2.circle(frame, (cx, cy), 6, (0, 0, 255), -1)
 
     txt = f"seen={seen} offset={offset:+.2f} angle={angle:+.1f}"
     cv2.putText(frame, txt, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
@@ -109,29 +117,34 @@ def draw_debug(frame, dbg, offset, seen, angle):
 def main():
     px = Picarx()
 
-    # Aim camera down before starting (your class supports this) :contentReference[oaicite:3]{index=3}
+    # Aim camera down before start (uses your existing method)
     px.set_cam_tilt_angle(-30)
     time.sleep(0.4)
     input("Camera tilted down ~30°. Press Enter to begin...")
 
-    cap = cv2.VideoCapture(0, cv2.CAP_V4L2)  # V4L2 tends to be most stable on Pi
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
+    # Start Picamera2 (the method that worked for you)
+    picam2 = Picamera2()
+    config = picam2.create_preview_configuration(main={"size": (640, 480), "format": "RGB888"})
+    picam2.configure(config)
+    picam2.start()
+    time.sleep(0.2)
 
-    polarity = "dark"      # "light" if white tape on dark floor
-    speed = 30             # slow
-    scale = 25.0           # steering strength
+    polarity = "dark"   # set "light" if you have white tape on dark floor
+    speed = 12          # slow
+    scale = 25.0        # steering strength (deg at offset=1)
     dt = 0.05
 
-    lost_timeout = 5.0
+    lost_timeout = 1.2
     lost_t = 0.0
 
     try:
         while True:
-            frame = sensor(cap)
+            frame = sensor(picam2)
             offset, seen, dbg = interpreter(frame, polarity=polarity, roi_frac=0.35)
+
             angle = controller(px, offset, seen, speed=speed, scale=scale)
 
+            # Lost-line stop logic
             if not seen:
                 lost_t += dt
                 if lost_t >= lost_timeout:
@@ -142,13 +155,11 @@ def main():
             else:
                 lost_t = 0.0
 
-            # display feed
+            # Display
             disp = draw_debug(frame, dbg, offset, seen, angle)
-            if disp is not None:
-                cv2.imshow("PiCar-X Line Follow", disp)
-                # press 'q' to quit
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
+            cv2.imshow("PiCar-X Line Follow (press q)", disp)
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                break
 
             time.sleep(0.05)
 
@@ -156,7 +167,7 @@ def main():
         px.stop()
         px.set_dir_servo_angle(0)
         try:
-            cap.release()
+            picam2.stop()
         except Exception:
             pass
         cv2.destroyAllWindows()
