@@ -85,7 +85,7 @@ def controller(px, offset, seen, speed=35, scale=25.0):
         px.stop()
         return 0.0
 
-    angle = scale * float(offset)
+    angle = scale * float(-offset)
     px.set_dir_servo_angle(angle)
     px.forward(speed)
     return angle
