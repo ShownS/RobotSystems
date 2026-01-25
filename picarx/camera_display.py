@@ -1,43 +1,37 @@
-import cv2
 import time
+import cv2
+from picamera2 import Picamera2
 
-def open_camera():
-    # Try V4L2 first (works for USB cams; sometimes fails for CSI)
-    cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
-    if cap.isOpened():
-        return cap, "V4L2 /dev/video0"
+def main():
+    picam2 = Picamera2()
 
-    # Fallback: libcamera via GStreamer (works for CSI cameras)
-    gst = (
-        "libcamerasrc ! "
-        "video/x-raw,width=640,height=480,framerate=30/1 ! "
-        "videoconvert ! appsink drop=true"
+    # Simple preview config (fast enough)
+    config = picam2.create_preview_configuration(
+        main={"size": (640, 480), "format": "RGB888"}
     )
-    cap = cv2.VideoCapture(gst, cv2.CAP_GSTREAMER)
-    if cap.isOpened():
-        return cap, "GStreamer libcamerasrc"
+    picam2.configure(config)
+    picam2.start()
 
-    return None, "none"
+    time.sleep(0.2)  # give camera time to warm up
 
-cap, mode = open_camera()
-print("Camera mode:", mode)
+    try:
+        while True:
+            # Returns RGB image
+            frame = picam2.capture_array()
+            if frame is None:
+                print("No frame from Picamera2")
+                continue
 
-if cap is None:
-    raise RuntimeError("Could not open camera with V4L2 or GStreamer/libcamera")
+            # OpenCV expects BGR for correct colors
+            frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
-last_print = time.time()
+            cv2.imshow("Picamera2 Feed (press q)", frame_bgr)
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                break
 
-while True:
-    ok, frame = cap.read()
-    if not ok or frame is None:
-        if time.time() - last_print > 1.0:
-            print("No frame read...")
-            last_print = time.time()
-        continue
+    finally:
+        picam2.stop()
+        cv2.destroyAllWindows()
 
-    cv2.imshow("Camera Test (press q)", frame)
-    if cv2.waitKey(1) & 0xFF == ord("q"):
-        break
-
-cap.release()
-cv2.destroyAllWindows()
+if __name__ == "__main__":
+    main()
