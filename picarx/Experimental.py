@@ -538,7 +538,7 @@ if __name__ == "__main__":
     px.calibrate_line(sensor, 30)
 
     interp = Interpreter(px, polarity="dark")
-    ctrl = Controller(px, scale=25.0)
+    ctrl = Controller(px, scale=30.0)
 
     dt = 0.05
     t_time = 0.0
