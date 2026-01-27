@@ -52,17 +52,17 @@ class Interpreter:
         self.line_seen = False
         self.offset = 0.0
 
-    def normalize(val, white, black):
+    def normalize(self, val, white, black):
         return (white - val) / (white - black)
 
 
     def process(self, val_list):
-        L = self.normalize(val_list[0], 1000, 500)
-        M = self.normalize(val_list[1], 1000, 500)
-        R = self.normalize(val_list[2], 1000, 500)
+        L = self.normalize(val_list[0], 1100, 300)
+        M = self.normalize(val_list[1], 1100, 300)
+        R = self.normalize(val_list[2], 1100, 300)
 
         self.offset = (L - R) / (L + M + R + 1e-6)
-        self.offset = max(-1.0, min(1.0, offset))
+        self.offset = max(-1.0, min(1.0, self.offset))
 
         states = self.px.get_line_status(val_list) 
         if self.polarity == "light":
@@ -109,11 +109,11 @@ class Controller:
 
         if self.previous_angle <= angle:
             for a in range(int(self.previous_angle),int(angle)):
-                self.px.set_dir_servo_angle(angle)
+                self.px.set_dir_servo_angle(a)
                 time.sleep(0.015)
         else:
             for a in range(int(self.previous_angle),int(angle),-1):
-                self.px.set_dir_servo_angle(angle)
+                self.px.set_dir_servo_angle(a)
                 time.sleep(0.015)
         self.previous_angle = angle
         return angle
@@ -549,7 +549,7 @@ if __name__ == "__main__":
             interp.process(vals)
             offset = interp.output()
             angle = ctrl.control(offset)
-            px.forward(40)
+            px.forward(35)
 
             if interp.line_seen:
                 t_time = 0.0
