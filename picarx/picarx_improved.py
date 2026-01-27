@@ -536,7 +536,7 @@ if __name__ == "__main__":
             else:
                 t_time += dt
 
-                if t_time >= 1.0:
+                if t_time >= 3.0:
                     px.stop()
                     px.set_dir_servo_angle(0)
                     print("Line lost")
