@@ -96,11 +96,11 @@ class Controller:
         angle = self.scale * float(offset)
 
         if self.previous_angle <= angle:
-            for a in range(self.previous_angle,angle):
+            for a in range(int(self.previous_angle),int(angle)):
                 self.px.set_dir_servo_angle(angle)
                 time.sleep(0.01)
         else:
-            for a in range(self.previous_angle,angle,-1):
+            for a in range(int(self.previous_angle),int(angle),-1):
                 self.px.set_dir_servo_angle(angle)
                 time.sleep(0.01)
         self.previous_angle = angle
