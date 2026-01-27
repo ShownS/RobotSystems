@@ -96,7 +96,7 @@ class Interpreter:
         return self.offset
 
     def output(self):
-        return self._pos
+        return self.offset
     
 class Controller:
     def __init__(self, px, scale=30.0):
