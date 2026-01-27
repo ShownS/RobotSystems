@@ -549,7 +549,7 @@ if __name__ == "__main__":
             interp.process(vals)
             offset = interp.output()
             angle = ctrl.control(offset)
-            px.forward(35)
+            px.forward(40)
 
             if interp.line_seen:
                 t_time = 0.0
