@@ -22,9 +22,7 @@ import time
 
 
 def constrain(x, min_val, max_val):
-    '''
-    Constrains value to be within a range.
-    '''
+
     return max(min_val, min(max_val, x))
 
 class Sensor:
@@ -42,15 +40,6 @@ class Sensor:
         return [l_val, m_val, r_val]
     
 class Interpreter:
-    """
-    Manual 3.2 Interpreter (kept as simple as the provided line tracking example).
-
-    Uses the existing method:
-        px.get_line_status(val_list)
-    which returns [0/1, 0/1, 0/1] style line/background classification. :contentReference[oaicite:2]{index=2}
-
-    output() returns position in [-1, 1], positive means line is to the LEFT of robot. :contentReference[oaicite:3]{index=3}
-    """
 
     def __init__(self, px, sensitivity=0.35, polarity="dark"):
         self.px = px
@@ -127,11 +116,7 @@ class Picarx(object):
     PRESCALER = 10
     TIMEOUT = 0.02
 
-    # servo_pins: camera_pan_servo, camera_tilt_servo, direction_servo
-    # motor_pins: left_swicth, right_swicth, left_pwm, right_pwm
-    # grayscale_pins: 3 adc channels
-    # ultrasonic_pins: trig, echo2
-    # config: path of config file
+
     def __init__(self, 
                 servo_pins:list=['P0', 'P1', 'P2'], 
                 motor_pins:list=['D4', 'D5', 'P13', 'P12'],
@@ -217,9 +202,6 @@ class Picarx(object):
         elif speed < 0:
             direction = -1 * self.cali_dir_value[motor]
         speed = abs(speed)
-        # print(f"direction: {direction}, speed: {speed}")
-        # if speed != 0:
-        #     speed = int(speed /2 ) + 50
         speed = speed - self.cali_speed_value[motor]
         if direction < 0:
             self.motor_direction_pins[motor].high()
@@ -497,8 +479,6 @@ class Picarx(object):
     def close(self):
         self.reset()
         self.ultrasonic.close()
-
-if __name__ == "__main__":
     # px = Picarx()
     # e = 0
     # while e < 1:
@@ -523,7 +503,10 @@ if __name__ == "__main__":
     #         e += 1
     #     else:
     #         print("Please enter a valid command: w, a, s, d, p, k, q")
-    #     px.stop()         
+    #     px.stop() 
+
+if __name__ == "__main__":
+        
     px = Picarx()
 
     px.set_cam_tilt_angle(-30)
