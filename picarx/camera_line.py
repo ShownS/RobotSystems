@@ -127,7 +127,7 @@ def main():
                 if lost_t >= lost_timeout:
                     px.stop()
                     px.set_dir_servo_angle(0)
-                    print("Lost line too long -> stopping.")
+                    print("Lost line too long")
                     break
             else:
                 lost_t = 0.0

@@ -50,8 +50,20 @@ class Interpreter:
         self._pos = 0.0
         self._last_nonzero = 0.0
         self.line_seen = False
+        self.offset = 0.0
+
+    def normalize(val, white, black):
+        return (white - val) / (white - black)
+
 
     def process(self, val_list):
+        L = self.normalize(val_list[0], 1000, 500)
+        M = self.normalize(val_list[1], 1000, 500)
+        R = self.normalize(val_list[2], 1000, 500)
+
+        self.offset = (L - R) / (L + M + R + 1e-6)
+        self.offset = max(-1.0, min(1.0, offset))
+
         states = self.px.get_line_status(val_list) 
         if self.polarity == "light":
             states = [1 - bit for bit in states]
@@ -81,7 +93,7 @@ class Interpreter:
         if self._pos < -1.0:
             self._pos = -1.0
 
-        return self._pos
+        return self.offset
 
     def output(self):
         return self._pos
