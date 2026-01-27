@@ -98,11 +98,11 @@ class Controller:
         if self.previous_angle <= angle:
             for a in range(int(self.previous_angle),int(angle)):
                 self.px.set_dir_servo_angle(angle)
-                time.sleep(0.02)
+                time.sleep(0.015)
         else:
             for a in range(int(self.previous_angle),int(angle),-1):
                 self.px.set_dir_servo_angle(angle)
-                time.sleep(0.02)
+                time.sleep(0.015)
         self.previous_angle = angle
         return angle
 
@@ -526,7 +526,7 @@ if __name__ == "__main__":
     px.calibrate_line(sensor, 30)
 
     interp = Interpreter(px, polarity="dark")
-    ctrl = Controller(px, scale=30.0)
+    ctrl = Controller(px, scale=25.0)
 
     dt = 0.05
     t_time = 0.0
@@ -537,7 +537,7 @@ if __name__ == "__main__":
             interp.process(vals)
             offset = interp.output()
             angle = ctrl.control(offset)
-            px.forward(40)
+            px.forward(35)
 
             if interp.line_seen:
                 t_time = 0.0
