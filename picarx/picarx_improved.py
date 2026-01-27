@@ -90,12 +90,20 @@ class Controller:
     def __init__(self, px, scale=30.0):
         self.px = px
         self.scale = float(scale)
+        self.previous_angle = 0.0
 
     def control(self, offset):
         angle = self.scale * float(offset)
 
-        self.px.set_dir_servo_angle(angle)
-
+        if self.previous_angle <= angle:
+            for a in range(self.previous_angle,angle):
+                self.px.set_dir_servo_angle(angle)
+                time.sleep(0.01)
+        else:
+            for a in range(self.previous_angle,angle,-1):
+                self.px.set_dir_servo_angle(angle)
+                time.sleep(0.01)
+        self.previous_angle = angle
         return angle
 
 
