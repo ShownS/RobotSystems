@@ -16,61 +16,55 @@ class Bus():
     def read(self):
         return self.message
 
-def sensor(picam2):
-    frame_rgb = picam2.capture_array()
-    frame_bgr = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2BGR)
-    return frame_bgr
+
+def sensor(frame_bus, picam2):
+    while True:
+        frame = picam2.capture_array()
+        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+        frame_bus.write(frame)
+        time.sleep(0.05)
+
+def interpreter(frame_bus, offset_bus, polarity="dark", roi_frac=0.35, min_area=200):
+    while True:
+        frame = frame_bus.read()
+        h, w = frame.shape[:2]
+
+        y0 = int(h * (1.0 - roi_frac))
+        roi = frame[y0:h, :]
+
+        gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+        gray = cv2.GaussianBlur(gray, (5, 5), 0)
+
+        if polarity == "dark":
+            _, bw = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+        else:
+            _, bw = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
+        bw = cv2.morphologyEx(bw, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
+
+        contours, _ = cv2.findContours(bw, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        c = max(contours, key=cv2.contourArea)
+        M = cv2.moments(c)
+
+        cx = float(M["m10"] / M["m00"])  
+        center = w / 2.0
+
+        offset = (center - cx) / center
+        offset = max(-1.0, min(1.0, offset))
+
+        offset_bus.write(offset)
+
+        time.sleep(0.05)
 
 
-
-def interpreter(frame, polarity="dark", roi_frac=0.35, min_area=200):
-    h, w = frame.shape[:2]
-
-    y0 = int(h * (1.0 - roi_frac))
-    roi = frame[y0:h, :]
-
-    gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
-    gray = cv2.GaussianBlur(gray, (5, 5), 0)
-
-    if polarity == "dark":
-        _, bw = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-    else:
-        _, bw = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-
-    bw = cv2.morphologyEx(bw, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
-
-    contours, _ = cv2.findContours(bw, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    if not contours:
-        return 0.0, False, {"y0": y0, "w": w, "h": h}
-
-    c = max(contours, key=cv2.contourArea)
-    area = cv2.contourArea(c)
-    if area < min_area:
-        return 0.0, False, {"y0": y0, "w": w, "h": h, "area": area}
-
-    M = cv2.moments(c)
-    if M["m00"] == 0:
-        return 0.0, False, {"y0": y0, "w": w, "h": h, "area": area}
-
-    cx = float(M["m10"] / M["m00"])  
-    center = w / 2.0
-
-    offset = (center - cx) / center
-    offset = max(-1.0, min(1.0, offset))
-
-    dbg = {"y0": y0, "cx": int(cx), "area": area, "w": w, "h": h}
-    return offset, True, dbg
-
-
-def controller(px, offset, seen, speed=35, scale=25.0):
-    if not seen:
-        px.stop()
-        return 0.0
-
-    angle = scale * float(-offset)
-    px.set_dir_servo_angle(angle)
-    px.forward(speed)
-    return angle
+def controller(px, offset_bus, speed=35, scale=25.0):
+    while True:    
+        offset = offset_bus.read()
+        angle = scale * float(-offset)
+        px.set_dir_servo_angle(angle)
+        px.forward(speed)
+        time.sleep(0.05)
 
 
 def draw_debug(frame, dbg, offset, seen, angle):
