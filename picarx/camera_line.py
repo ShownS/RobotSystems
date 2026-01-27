@@ -6,6 +6,17 @@ from picamera2 import Picamera2
 from picarx_improved import Picarx
 
 
+class Bus():
+    def __init__(self, initial=None):
+        self.message = initial
+    
+    def write(self, message):
+        self.message = message
+
+    def read(self):
+        return self.message
+    
+
 def sensor(picam2):
     frame_rgb = picam2.capture_array()
     frame_bgr = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2BGR)
@@ -97,8 +108,8 @@ def main():
     time.sleep(0.2)
 
     polarity = "dark" 
-    speed = 30          
-    scale = 25.0        
+    speed = 35          
+    scale = 30.0        
     dt = 0.05
 
     lost_timeout = 1.2
@@ -107,11 +118,10 @@ def main():
     try:
         while True:
             frame = sensor(picam2)
-            offset, seen, dbg = interpreter(frame, polarity=polarity, roi_frac=0.35)
+            offset, seen, dbg = interpreter(frame, polarity=polarity, roi_frac=0.65)
 
             angle = controller(px, offset, seen, speed=speed, scale=scale)
 
-            # Lost-line stop logic
             if not seen:
                 lost_t += dt
                 if lost_t >= lost_timeout:
@@ -122,7 +132,6 @@ def main():
             else:
                 lost_t = 0.0
 
-            # Display
             disp = draw_debug(frame, dbg, offset, seen, angle)
             cv2.imshow("PiCar-X Line Follow (press q)", disp)
             if cv2.waitKey(1) & 0xFF == ord("q"):

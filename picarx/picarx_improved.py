@@ -298,6 +298,8 @@ class Picarx(object):
         px.set_line_reference(ref_int)
         print(f"Set line_reference to: {ref_int}")
 
+        input("Press Enter")
+
         return ref_int
 
 
@@ -524,7 +526,7 @@ if __name__ == "__main__":
     #     px.stop()         
     px = Picarx()
 
-    px.set_cam_tilt_angle(-30)   # flip to +30 if it moves the wrong way
+    px.set_cam_tilt_angle(-30)
     time.sleep(0.4)
 
     input("Press Enter to begin")
@@ -544,7 +546,7 @@ if __name__ == "__main__":
             interp.process(vals)
             offset = interp.output()
             angle = ctrl.control(offset)
-            px.forward(50)
+            px.forward(40)
 
             if interp.line_seen:
                 t_time = 0.0
