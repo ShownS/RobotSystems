@@ -6,36 +6,16 @@ from picamera2 import Picamera2
 from picarx_improved import Picarx
 
 
-# -------------------------
-# 1) SENSOR: get a frame (BGR)
-# -------------------------
 def sensor(picam2):
-    """
-    Returns a BGR frame (numpy array) or None if capture fails.
-    Picamera2 returns RGB by default; OpenCV expects BGR. :contentReference[oaicite:2]{index=2}
-    """
     frame_rgb = picam2.capture_array()
-    if frame_rgb is None:
-        return None
     frame_bgr = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2BGR)
     return frame_bgr
 
 
-# -------------------------
-# 2) INTERPRETER: frame -> (offset, seen, debug)
-# -------------------------
-def interpreter(frame, polarity="dark", roi_frac=0.35, min_area=200):
-    """
-    offset in [-1,1], positive means line is LEFT of robot.
-    seen True if line detected.
-    debug dict includes ROI top (y0) and centroid x for drawing.
-    """
-    if frame is None:
-        return 0.0, False, {}
 
+def interpreter(frame, polarity="dark", roi_frac=0.35, min_area=200):
     h, w = frame.shape[:2]
 
-    # Bottom-of-image ROI
     y0 = int(h * (1.0 - roi_frac))
     roi = frame[y0:h, :]
 
@@ -62,10 +42,9 @@ def interpreter(frame, polarity="dark", roi_frac=0.35, min_area=200):
     if M["m00"] == 0:
         return 0.0, False, {"y0": y0, "w": w, "h": h, "area": area}
 
-    cx = float(M["m10"] / M["m00"])  # centroid in ROI coords (same width)
+    cx = float(M["m10"] / M["m00"])  
     center = w / 2.0
 
-    # Map x to [-1, 1], positive = line is left => (center - cx)/center
     offset = (center - cx) / center
     offset = max(-1.0, min(1.0, offset))
 
@@ -73,14 +52,7 @@ def interpreter(frame, polarity="dark", roi_frac=0.35, min_area=200):
     return offset, True, dbg
 
 
-# -------------------------
-# 3) CONTROLLER: (offset, seen) -> action
-# -------------------------
 def controller(px, offset, seen, speed=35, scale=25.0):
-    """
-    scale converts offset [-1,1] -> steering angle degrees.
-    returns commanded angle.
-    """
     if not seen:
         px.stop()
         return 0.0
@@ -98,12 +70,9 @@ def draw_debug(frame, dbg, offset, seen, angle):
     h, w = frame.shape[:2]
     y0 = dbg.get("y0", int(h * 0.65))
 
-    # ROI box
     cv2.rectangle(frame, (0, y0), (w - 1, h - 1), (0, 255, 0), 2)
-    # Center line
     cv2.line(frame, (w // 2, y0), (w // 2, h - 1), (255, 255, 0), 2)
 
-    # Centroid marker (draw in the ROI mid-height for visibility)
     if seen and "cx" in dbg:
         cx = dbg["cx"]
         cy = y0 + (h - y0) // 2
@@ -117,21 +86,19 @@ def draw_debug(frame, dbg, offset, seen, angle):
 def main():
     px = Picarx()
 
-    # Aim camera down before start (uses your existing method)
     px.set_cam_tilt_angle(-30)
     time.sleep(0.4)
-    input("Camera tilted down ~30°. Press Enter to begin...")
+    input("Press Enter")
 
-    # Start Picamera2 (the method that worked for you)
     picam2 = Picamera2()
     config = picam2.create_preview_configuration(main={"size": (640, 480), "format": "RGB888"})
     picam2.configure(config)
     picam2.start()
     time.sleep(0.2)
 
-    polarity = "dark"   # set "light" if you have white tape on dark floor
-    speed = 30          # slow
-    scale = 25.0        # steering strength (deg at offset=1)
+    polarity = "dark" 
+    speed = 30          
+    scale = 25.0        
     dt = 0.05
 
     lost_timeout = 1.2
