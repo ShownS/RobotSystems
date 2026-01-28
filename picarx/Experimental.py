@@ -106,7 +106,7 @@ class Controller:
 
     def control(self, offset):
         angle = self.scale * float(offset)
-        self.px.set_dir_servo_angle(angle)
+        self.px.set_dir_servo_angle(-angle)
         return angle
 
 
