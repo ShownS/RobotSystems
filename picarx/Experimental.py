@@ -57,9 +57,9 @@ class Interpreter:
 
 
     def process(self, val_list, bg, ln):
-        L = self.normalize(val_list[0], bg, ln)
-        M = self.normalize(val_list[1], bg, ln)
-        R = self.normalize(val_list[2], bg, ln)
+        L = self.normalize(val_list[0], bg[0], ln[0])
+        M = self.normalize(val_list[1], bg[1], ln[1])
+        R = self.normalize(val_list[2], bg[2], ln[2])
 
         self.offset = (L - R) / (L + M + R + 1e-6)
         self.offset = max(-1.0, min(1.0, self.offset))
