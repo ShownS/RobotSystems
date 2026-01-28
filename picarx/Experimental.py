@@ -56,10 +56,10 @@ class Interpreter:
         return (white - val) / (white - black)
 
 
-    def process(self, val_list):
-        L = self.normalize(val_list[0], 1100, 300)
-        M = self.normalize(val_list[1], 1100, 300)
-        R = self.normalize(val_list[2], 1100, 300)
+    def process(self, val_list, bg, ln):
+        L = self.normalize(val_list[0], bg, ln)
+        M = self.normalize(val_list[1], bg, ln)
+        R = self.normalize(val_list[2], bg, ln)
 
         self.offset = (L - R) / (L + M + R + 1e-6)
         self.offset = max(-1.0, min(1.0, self.offset))
@@ -107,15 +107,6 @@ class Controller:
     def control(self, offset):
         angle = self.scale * float(offset)
         self.px.set_dir_servo_angle(angle)
-        # if self.previous_angle <= angle:
-        #     for a in range(int(self.previous_angle),int(angle)):
-        #         self.px.set_dir_servo_angle(a)
-        #         time.sleep(0.015)
-        # else:
-        #     for a in range(int(self.previous_angle),int(angle),-1):
-        #         self.px.set_dir_servo_angle(a)
-        #         time.sleep(0.015)
-        # self.previous_angle = angle
         return angle
 
 
@@ -302,7 +293,7 @@ class Picarx(object):
 
         input("Press Enter")
 
-        return ref_int
+        return bg, ln
 
 
     def set_cam_pan_angle(self, value):
@@ -535,7 +526,7 @@ if __name__ == "__main__":
     input("Press Enter to begin")
 
     sensor = Sensor(("A0", "A1", "A2"))
-    px.calibrate_line(sensor, 30)
+    bg, ln = px.calibrate_line(sensor, 30)
 
     interp = Interpreter(px, polarity="dark")
     ctrl = Controller(px, scale=30.0)
@@ -546,10 +537,12 @@ if __name__ == "__main__":
     try:
         while True:
             vals = sensor.read()
-            interp.process(vals)
+            interp.process(vals, bg, ln)
             offset = interp.output()
             angle = ctrl.control(offset)
-            px.forward(30)
+            turn = min(1.0, abs(offset))
+            speed = int(20 - 6 * turn)  
+            px.forward(speed)
 
             if interp.line_seen:
                 t_time = 0.0
