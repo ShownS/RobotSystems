@@ -541,7 +541,7 @@ if __name__ == "__main__":
             offset = interp.output()
             angle = ctrl.control(offset)
             turn = min(1.0, abs(offset))
-            speed = int(40 - 6 * turn)  
+            speed = int(45 - 6 * turn)  
             px.forward(speed)
 
             if interp.line_seen:
