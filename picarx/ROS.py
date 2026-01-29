@@ -157,11 +157,11 @@ def main():
                     shutdown_event, polarity, 0.35, 200
                 ),
                 executor.submit(
-                    control_loop, px, interp_bus, control_dt,
-                    shutdown_event, speed, scale, steer_sign
+                    ultrasonic_loop, px, sonic_bus, sonic_dt, shutdown_event
                 ),
                 executor.submit(
-                    ultrasonic_loop, px, sonic_bus, sonic_dt,shutdown_event
+                    control_loop, px, interp_bus, sonic_bus, control_dt,
+                    shutdown_event, speed, scale, steer_sign
                 ),
             ]
 
