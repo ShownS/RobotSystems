@@ -108,7 +108,7 @@ def control_loop(px: Picarx, interp_bus: Bus, sonic_bus: Bus, delay: float, shut
 
         angle = steer_sign * scale * (-offset)
         px.set_dir_servo_angle(angle)
-        if dist > 8.0:
+        if dist < 7.0:
             px.forward(speed)
         time.sleep(delay)
 
