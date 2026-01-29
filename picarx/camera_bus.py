@@ -122,7 +122,7 @@ def main():
 
     # Parameters
     polarity = "dark"
-    speed = 30
+    speed = 40
     scale = 25.0
     steer_sign = +1
 
