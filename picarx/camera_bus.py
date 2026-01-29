@@ -55,18 +55,12 @@ def interpreter_loop(frame_bus: Bus, interp_bus: Bus, delay: float, shutdown_eve
         gray = cv2.GaussianBlur(gray, (5, 5), 0)
 
         if polarity == "dark":
-            _, bw = cv2.threshold(
-                gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU
-            )
+            _, bw = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
         else:
-            _, bw = cv2.threshold(
-                gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
-            )
+            _, bw = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
         bw = cv2.morphologyEx(bw, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
-        contours, _ = cv2.findContours(
-            bw, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
-        )
+        contours, _ = cv2.findContours(bw, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         seen = False
         offset = 0.0
