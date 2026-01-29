@@ -28,7 +28,6 @@ def constrain(x, min_val, max_val):
 class Sensor:
 
     def __init__(self, adc_pins=("A0", "A1", "A2")):
-        # ADC structures stored as attributes using self.  :contentReference[oaicite:3]{index=3}
         self.adc_l = ADC(adc_pins[0])
         self.adc_m = ADC(adc_pins[1])
         self.adc_r = ADC(adc_pins[2])

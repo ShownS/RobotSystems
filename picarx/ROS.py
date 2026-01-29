@@ -30,6 +30,11 @@ def handle_exception(future):
     if exc is not None:
         print(f"Exception in worker thread: {exc}")
 
+def ultrasonic_loop(px: Picarx, sonic_bus: Bus, delay: float, shutdown_event: Event):
+    while not shutdown_event.is_set():
+        dist = round(px.ultrasonic.read(), 2)
+        sonic_bus.write(dist)
+
 
 def sensor_loop(picam2: Picamera2, frame_bus: Bus, delay: float, shutdown_event: Event):
     while not shutdown_event.is_set():
@@ -82,13 +87,15 @@ def interpreter_loop(frame_bus: Bus, interp_bus: Bus, delay: float, shutdown_eve
         time.sleep(delay)
 
 
-def control_loop(px: Picarx, interp_bus: Bus, delay: float, shutdown_event: Event,
+def control_loop(px: Picarx, interp_bus: Bus, sonic_bus: Bus, delay: float, shutdown_event: Event,
                  speed=30, scale=25.0, steer_sign=+1):
     while not shutdown_event.is_set():
         msg = interp_bus.read()
         if msg is None:
             time.sleep(delay)
             continue
+
+        dist = sonic_bus.read()
 
         offset, seen = msg
 
@@ -100,7 +107,8 @@ def control_loop(px: Picarx, interp_bus: Bus, delay: float, shutdown_event: Even
 
         angle = steer_sign * scale * (-offset)
         px.set_dir_servo_angle(angle)
-        px.forward(speed)
+        if dist > 8.0:
+            px.forward(speed)
         time.sleep(delay)
 
 
@@ -124,13 +132,16 @@ def main():
     speed = 40
     scale = 25.0
     steer_sign = +1
+    trig, echo = 'D2', 'D3'
 
     sensor_dt = 0.03
+    sonic_dt = 0.03
     interp_dt = 0.03
     control_dt = 0.05
 
     frame_bus = Bus(None)
     interp_bus = Bus(None)
+    sonic_bus = Bus(None)
 
     shutdown_event = Event()
 
@@ -147,6 +158,9 @@ def main():
                 executor.submit(
                     control_loop, px, interp_bus, control_dt,
                     shutdown_event, speed, scale, steer_sign
+                ),
+                executor.submit(
+                    ultrasonic_loop, px, sonic_bus, sonic_dt,shutdown_event
                 ),
             ]
 
