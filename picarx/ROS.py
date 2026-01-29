@@ -34,6 +34,7 @@ def ultrasonic_loop(px: Picarx, sonic_bus: Bus, delay: float, shutdown_event: Ev
     while not shutdown_event.is_set():
         dist = round(px.ultrasonic.read(), 2)
         sonic_bus.write(dist)
+        time.sleep(delay)
 
 
 def sensor_loop(picam2: Picamera2, frame_bus: Bus, delay: float, shutdown_event: Event):
