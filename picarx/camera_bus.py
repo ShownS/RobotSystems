@@ -120,7 +120,6 @@ def main():
     picam2.start()
     time.sleep(0.2)
 
-    # Parameters
     polarity = "dark"
     speed = 40
     scale = 25.0
@@ -130,7 +129,6 @@ def main():
     interp_dt = 0.03
     control_dt = 0.05
 
-    # Busses
     frame_bus = Bus(None)
     interp_bus = Bus(None)
 
