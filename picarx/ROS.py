@@ -83,8 +83,8 @@ def control(px: Picarx, line_msg, clear_ahead, speed=40, scale=25.0, steer_sign=
     offset, seen = line_msg
 
     if not clear_ahead or not seen:
-        px.stop()
         px.set_dir_servo_angle(0)
+        px.backward(speed)
         return None
 
     angle = steer_sign * scale * (-offset)
@@ -95,7 +95,7 @@ def control(px: Picarx, line_msg, clear_ahead, speed=40, scale=25.0, steer_sign=
 
 def make_services(px, picam2, frame_bus, line_bus, dist_bus, clear_bus,
                   term_bus, dt_camera=0.03, dt_line=0.03, dt_ultra=0.05, dt_control=0.07,
-                  runtime_s=60, polarity="dark", roi_frac=0.35, min_area=200,
+                  runtime_s=60, polarity="dark", roi_frac=0.65, min_area=200,
                   stop_threshold_cm=9.0, speed=40, scale=25.0, steer_sign=+1):
 
     timer = Timer(
