@@ -1,0 +1,3 @@
+[submodule "ArmPi"]
+	path = ArmPi
+	url = git@github.com:ShownS/ArmPi.git
